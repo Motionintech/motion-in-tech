@@ -16,7 +16,10 @@ dist-ssr
 .nitro
 .vercel
 .workspace
-*.local
+# Environment
+.env
+.env.*
+!.env.example
 
 # Wrangler / Cloudflare
 .wrangler/

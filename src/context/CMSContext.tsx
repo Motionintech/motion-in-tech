@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { fetchRemoteCMS, saveRemoteCMS, fetchContactSubmissions } from "@/lib/supabase";
 import heroPoster from "@/assets/hero-poster.jpg";
 import projectHelios from "@/assets/project-helios.jpg";
 import projectOrbit from "@/assets/project-orbit.jpg";
@@ -113,8 +114,8 @@ const defaultData: CMSData = {
   hero: {
     headline: "We Build Digital Futures.",
     subHeadline: "Motion In Tech — Where Code Meets Craft.",
-    cta1: { label: "See Our Work", link: "#work" },
-    cta2: { label: "Get In Touch", link: "#contact" },
+    cta1: { label: "See Our Work", link: "/work" },
+    cta2: { label: "Get In Touch", link: "/contact" },
     backgroundType: "image",
     backgroundVideo: "",
     backgroundImage: heroPoster,
@@ -239,7 +240,7 @@ const defaultData: CMSData = {
     mission: "Make the most important digital products on earth feel inevitable.",
   },
   contact: {
-    email: "hello@motionintech.com",
+    email: "developer@motionintech.com",
     phone: "+49 30 1234 5678",
     address: "Torstraße 110, 10119 Berlin, Germany",
     socials: {
@@ -320,14 +321,24 @@ export function CMSProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    let active = true;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
+        const contactParsed = parsed.contact ?? {};
+        const contactEmail = (!contactParsed.email || contactParsed.email === "hello@motionintech.com")
+          ? "developer@motionintech.com"
+          : contactParsed.email;
         const globalParsed = parsed.global ?? {};
         setDataState({
           ...defaultData,
           ...parsed,
+          contact: {
+            ...defaultData.contact,
+            ...contactParsed,
+            email: contactEmail,
+          },
           global: {
             ...defaultData.global,
             ...globalParsed,
@@ -339,6 +350,66 @@ export function CMSProvider({ children }: { children: ReactNode }) {
       }
     } catch {}
     setHydrated(true);
+
+    // Sync from Supabase in the background
+    (async () => {
+      try {
+        const [remoteCms, remoteSubs] = await Promise.allSettled([
+          fetchRemoteCMS(),
+          fetchContactSubmissions(50),
+        ]);
+
+        if (!active) return;
+
+        setDataState((prev) => {
+          let updated = prev;
+
+          if (remoteCms.status === "fulfilled" && remoteCms.value) {
+            const r = remoteCms.value as Partial<CMSData>;
+            updated = {
+              ...updated,
+              ...r,
+              contact: {
+                ...updated.contact,
+                ...(r.contact ?? {}),
+                email: r.contact?.email || "developer@motionintech.com",
+              },
+            };
+          }
+
+          if (remoteSubs.status === "fulfilled" && remoteSubs.value?.success && Array.isArray(remoteSubs.value.data)) {
+            const mappedSubs = remoteSubs.value.data.map((s) => ({
+              id: s.id,
+              name: s.name,
+              email: s.email,
+              company: s.company || "",
+              service: s.service || "",
+              budget: s.budget || "",
+              message: s.message,
+              createdAt: new Date(s.created_at).getTime(),
+              read: Boolean(s.read),
+            }));
+
+            const existingIds = new Set((updated.submissions || []).map((x) => x.id));
+            const newSubs = mappedSubs.filter((x) => !existingIds.has(x.id));
+            if (newSubs.length > 0) {
+              updated = {
+                ...updated,
+                submissions: [...newSubs, ...(updated.submissions || [])].slice(0, 200),
+              };
+            }
+          }
+
+          return updated;
+        });
+      } catch {
+        // Fallback gracefully without breaking UI
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
   }, []);
   const [saved, setSaved] = useState(true);
 
@@ -349,8 +420,26 @@ export function CMSProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         setSaved(true);
+
+        // Safe Supabase remote sync (single-row, no bloat)
+        saveRemoteCMS({
+          hero: data.hero,
+          services: data.services,
+          projects: data.projects,
+          stats: data.stats,
+          animateCounters: data.animateCounters,
+          testimonials: data.testimonials,
+          process: data.process,
+          team: data.team,
+          about: data.about,
+          contact: data.contact,
+          seo: data.seo,
+          global: data.global,
+          header: data.header,
+          footer: data.footer,
+        }).catch(() => {});
       } catch {}
-    }, 300);
+    }, 600);
     return () => clearTimeout(t);
   }, [data, hydrated]);
 

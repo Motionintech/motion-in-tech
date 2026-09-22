@@ -16,7 +16,7 @@ export function CTABanner() {
         </h2>
         <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
           <a
-            href={`mailto:${data.contact.email}`}
+            href="/contact"
             data-cursor="hover"
             className="liquid-fill inline-flex items-center gap-3 border border-neon px-8 py-5 font-mono text-xs uppercase tracking-widest text-neon"
             style={{ borderColor: "var(--color-neon)" }}
