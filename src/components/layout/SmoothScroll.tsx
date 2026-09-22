@@ -10,14 +10,15 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     if (typeof window === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
     const lenis = new Lenis({
-      duration: 1.1,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 0.9,
+      touchMultiplier: isTouch ? 0 : 1, // Don't hijack native momentum scroll on touch devices
     });
 
     // Synchronize Lenis scroll position with GSAP ScrollTrigger
@@ -28,15 +29,25 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     };
 
     gsap.ticker.add(updateLenis);
-    gsap.ticker.lagSmoothing(0);
+    // Keep healthy lag smoothing so frame drops don't cause stuttering jumps
+    gsap.ticker.lagSmoothing(500, 33);
+
+    const handleResize = () => {
+      lenis.resize();
+      ScrollTrigger.refresh();
+    };
+
+    window.addEventListener("resize", handleResize, { passive: true });
 
     // Refresh ScrollTrigger after initial mount
     const timeout = setTimeout(() => {
+      lenis.resize();
       ScrollTrigger.refresh();
-    }, 100);
+    }, 200);
 
     return () => {
       clearTimeout(timeout);
+      window.removeEventListener("resize", handleResize);
       gsap.ticker.remove(updateLenis);
       lenis.destroy();
     };

@@ -14,7 +14,6 @@ export function Portfolio() {
   const torusRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const projects = data.projects.filter((p) => p.visible);
-  const [active, setActive] = useState(0);
 
   useEffect(() => {
     if (!root.current || !trackRef.current) return;
@@ -26,10 +25,9 @@ export function Portfolio() {
       const track = trackRef.current!;
       const cards = gsap.utils.toArray<HTMLElement>("[data-card]");
 
-      // Horizontal pin scroll with 3D rotation entry per card
+      // Horizontal pin scroll
       const totalScroll = () => track.scrollWidth - window.innerWidth;
 
-      let lastIdx = 0;
       const tween = gsap.to(track, {
         x: () => -totalScroll(),
         ease: "none",
@@ -38,66 +36,54 @@ export function Portfolio() {
           start: "top top",
           end: () => `+=${totalScroll() + window.innerHeight}`,
           pin: true,
-          scrub: 1,
+          scrub: 0.8,
           invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            const idx = Math.min(cards.length - 1, Math.floor(self.progress * cards.length));
-            if (idx !== lastIdx) {
-              lastIdx = idx;
-              setActive(idx);
-            }
-          },
         },
       });
 
-      // Per-card 3D parallax + reveal
-      cards.forEach((card, i) => {
+      // Subtle image parallax per card (lightweight GPU transform)
+      cards.forEach((card) => {
         const img = card.querySelector<HTMLElement>("[data-img]");
-        const num = card.querySelector<HTMLElement>("[data-num]");
-        const title = card.querySelector<HTMLElement>("[data-title]");
-        gsap.set(card, { rotateY: 25, rotateX: -8, z: -200, transformPerspective: 1200, opacity: 0.4 });
-        gsap.to(card, {
-          rotateY: 0, rotateX: 0, z: 0, opacity: 1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: card,
-            containerAnimation: tween,
-            start: "left 80%",
-            end: "left 40%",
-            scrub: 1,
-          },
-        });
-        if (img) gsap.to(img, {
-          scale: 1.15, yPercent: -8, ease: "none",
-          scrollTrigger: { trigger: card, containerAnimation: tween, start: "left right", end: "right left", scrub: true },
-        });
-        if (num) gsap.from(num, {
-          yPercent: 100, ease: "expo.out",
-          scrollTrigger: { trigger: card, containerAnimation: tween, start: "left 70%", end: "left 30%", scrub: 1 },
-        });
-        if (title) gsap.from(title, {
-          yPercent: 110, rotate: 6, ease: "expo.out",
-          scrollTrigger: { trigger: card, containerAnimation: tween, start: "left 70%", end: "left 30%", scrub: 1 },
-        });
+        if (img) {
+          gsap.to(img, {
+            scale: 1.08,
+            ease: "none",
+            scrollTrigger: {
+              trigger: card,
+              containerAnimation: tween,
+              start: "left right",
+              end: "right left",
+              scrub: 0.5,
+            },
+          });
+        }
       });
 
-      // Marquee infinite drift opposing scroll
+      // Marquee infinite drift
       if (marqueeRef.current) {
         gsap.to(marqueeRef.current, {
-          xPercent: -50, ease: "none", duration: 30, repeat: -1,
+          xPercent: -50,
+          ease: "none",
+          duration: 35,
+          repeat: -1,
         });
       }
 
-      // 3D torus & ring float
+      // 3D torus & ring float (GPU-friendly)
       if (torusRef.current) {
         gsap.to(torusRef.current, {
-          rotateX: 360, rotateY: 360, ease: "none",
-          scrollTrigger: { trigger: root.current, start: "top bottom", end: "bottom top", scrub: 1.2 },
+          rotateY: 360,
+          ease: "none",
+          duration: 25,
+          repeat: -1,
         });
       }
       if (ringRef.current) {
         gsap.to(ringRef.current, {
-          rotate: 360, ease: "none", duration: 40, repeat: -1,
+          rotate: 360,
+          ease: "none",
+          duration: 40,
+          repeat: -1,
         });
       }
     }, root);
@@ -110,14 +96,14 @@ export function Portfolio() {
       <div className="pointer-events-none absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "linear-gradient(var(--color-foreground) 1px, transparent 1px), linear-gradient(90deg, var(--color-foreground) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 70% 30%, color-mix(in oklab, var(--color-neon) 12%, transparent), transparent 60%)" }} />
 
-      {/* Floating 3D torus (CSS) */}
-      <div className="pointer-events-none absolute right-[6%] top-[14%] hidden md:block" style={{ perspective: 1400 }}>
-        <div ref={torusRef} className="relative h-72 w-72" style={{ transformStyle: "preserve-3d" }}>
-          {Array.from({ length: 16 }).map((_, i) => (
-            <div key={i} className="absolute inset-0 rounded-full border"
+      {/* Floating 3D torus (Lightweight CSS) */}
+      <div className="pointer-events-none absolute right-[6%] top-[14%] hidden md:block" style={{ perspective: 1000 }}>
+        <div ref={torusRef} className="relative h-64 w-64 will-change-transform" style={{ transformStyle: "preserve-3d" }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="absolute inset-0 rounded-full border will-change-transform"
               style={{
                 borderColor: "color-mix(in oklab, var(--color-neon) 35%, transparent)",
-                transform: `rotateY(${i * 22.5}deg)`,
+                transform: `rotateY(${i * 30}deg)`,
               }}
             />
           ))}

@@ -31,8 +31,9 @@ export function Cursor() {
         ring.style.opacity = "1";
       }
 
+      // Check cursor target only if target changed
       const t = e.target as HTMLElement | null;
-      const cursorEl = t?.closest("[data-cursor]") as HTMLElement | null;
+      const cursorEl = t?.closest?.("[data-cursor]") as HTMLElement | null;
       const nextHover = !!cursorEl;
       let nextLabel = "";
       if (cursorEl) {
@@ -43,12 +44,7 @@ export function Cursor() {
       if (nextHover !== currentHover || nextLabel !== currentLabel) {
         currentHover = nextHover;
         currentLabel = nextLabel;
-
-        ring.style.width = currentHover ? "72px" : "40px";
-        ring.style.height = currentHover ? "72px" : "40px";
-        ring.style.marginLeft = currentHover ? "-16px" : "0px";
-        ring.style.marginTop = currentHover ? "-16px" : "0px";
-        ring.style.background = currentLabel ? "var(--color-neon)" : "transparent";
+        ring.style.backgroundColor = currentLabel ? "var(--color-neon)" : "transparent";
 
         if (labelEl) {
           labelEl.textContent = currentLabel;
@@ -63,18 +59,23 @@ export function Cursor() {
       ring.style.opacity = "0";
     };
 
+    let ringScale = 1;
     const tick = () => {
-      rx += (mx - rx) * 0.2;
-      ry += (my - ry) * 0.2;
+      rx += (mx - rx) * 0.22;
+      ry += (my - ry) * 0.22;
+
+      // Smooth scale interpolation (no layout reflow!)
+      const targetScale = currentHover ? 1.8 : 1;
+      ringScale += (targetScale - ringScale) * 0.2;
 
       dot.style.transform = `translate3d(${mx - 4}px, ${my - 4}px, 0)`;
-      ring.style.transform = `translate3d(${rx - 20}px, ${ry - 20}px, 0)`;
+      ring.style.transform = `translate3d(${rx - 20}px, ${ry - 20}px, 0) scale(${ringScale})`;
 
       raf = requestAnimationFrame(tick);
     };
 
     window.addEventListener("mousemove", onMove, { passive: true });
-    document.addEventListener("mouseleave", onMouseLeave);
+    document.addEventListener("mouseleave", onMouseLeave, { passive: true });
     raf = requestAnimationFrame(tick);
 
     return () => {
@@ -92,7 +93,7 @@ export function Cursor() {
         className="pointer-events-none fixed left-0 top-0 z-[9999] h-2 w-2 rounded-full opacity-0 will-change-transform"
         style={{
           background: "var(--color-neon)",
-          boxShadow: "0 0 10px var(--color-neon)",
+          boxShadow: "0 0 8px var(--color-neon)",
           transition: "opacity 0.2s ease",
         }}
       />
@@ -102,13 +103,13 @@ export function Cursor() {
         className="pointer-events-none fixed left-0 top-0 z-[9998] flex h-10 w-10 items-center justify-center rounded-full border opacity-0 will-change-transform"
         style={{
           borderColor: "var(--color-neon)",
-          transition: "width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1), margin 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, opacity 0.2s ease",
+          transition: "background-color 0.2s ease, opacity 0.2s ease",
         }}
       >
         <span
           ref={labelRef}
           style={{ display: "none" }}
-          className="font-mono text-[10px] font-semibold tracking-widest text-background"
+          className="font-mono text-[9px] font-semibold tracking-widest text-background"
         />
       </div>
     </>

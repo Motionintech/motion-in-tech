@@ -64,22 +64,34 @@ export function Hero() {
         // Ambient float
         gsap.to(cubeRef.current, { y: -16, duration: 3.5, yoyo: true, repeat: -1, ease: "sine.inOut" });
 
-        // Mouse-hover tilt (using cached/viewport dimensions to prevent forced reflow)
+        // Mouse-hover tilt (RAF-throttled and bounded)
         const wrap = cubeWrapRef.current;
         const cube = cubeRef.current;
         let rect = root.current!.getBoundingClientRect();
         const onEnter = () => {
           if (root.current) rect = root.current.getBoundingClientRect();
         };
+        let moveRaf = 0;
         const onMove = (e: MouseEvent) => {
-          const w = rect.width || window.innerWidth;
-          const h = rect.height || window.innerHeight;
-          const x = (e.clientX - rect.left) / w - 0.5;
-          const y = (e.clientY - rect.top) / h - 0.5;
-          gsap.to(cube, { rotationY: `+=${x * 8}`, rotationX: `-=${y * 8}`, duration: 0.8, ease: "power3.out", overwrite: "auto" });
-          gsap.to(wrap, { x: x * 35, y: y * 35, duration: 0.9, ease: "power3.out" });
+          if (moveRaf) return;
+          moveRaf = requestAnimationFrame(() => {
+            moveRaf = 0;
+            const w = rect.width || window.innerWidth;
+            const h = rect.height || window.innerHeight;
+            const x = (e.clientX - rect.left) / w - 0.5;
+            const y = (e.clientY - rect.top) / h - 0.5;
+            gsap.to(cube, { rotationY: x * 24, rotationX: -y * 24, duration: 0.6, ease: "power2.out", overwrite: "auto" });
+            gsap.to(wrap, { x: x * 25, y: y * 25, duration: 0.7, ease: "power2.out" });
+          });
         };
-        const onLeave = () => gsap.to(wrap, { x: 0, y: 0, duration: 1, ease: "power3.out" });
+        const onLeave = () => {
+          if (moveRaf) {
+            cancelAnimationFrame(moveRaf);
+            moveRaf = 0;
+          }
+          gsap.to(cube, { rotationY: 0, rotationX: 0, duration: 0.8, ease: "power2.out" });
+          gsap.to(wrap, { x: 0, y: 0, duration: 0.8, ease: "power2.out" });
+        };
         root.current!.addEventListener("mouseenter", onEnter);
         root.current!.addEventListener("mousemove", onMove, { passive: true });
         root.current!.addEventListener("mouseleave", onLeave);
