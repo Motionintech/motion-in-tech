@@ -136,7 +136,7 @@ export function Portfolio() {
             </h2>
           </div>
           <div className="hidden font-mono text-[11px] uppercase tracking-[0.3em] text-muted-foreground md:block">
-            <span className="text-foreground">{String(active + 1).padStart(2, "0")}</span> / {String(projects.length).padStart(2, "0")}
+            <span className="text-foreground">01</span> / {String(projects.length).padStart(2, "0")}
             <span className="ml-4">Scroll →</span>
           </div>
         </div>
