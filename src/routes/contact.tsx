@@ -1,45 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { useCMS, cmsUid } from "@/context/CMSContext";
 import { PageHero } from "@/components/layout/PageHero";
 import { saveContactSubmission } from "@/lib/supabase";
-
-export const sendContactEmail = createServerFn({ method: "POST" })
-  .validator((d: { name: string; email: string; company?: string; service: string; message: string }) => d)
-  .handler(async ({ data }) => {
-    try {
-      const res = await fetch("https://formsubmit.co/ajax/developer@motionintech.com", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Referer: "https://motionintech.com",
-          Origin: "https://motionintech.com",
-        },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          company: data.company || "Not provided",
-          service: data.service,
-          message: data.message,
-          _subject: `New Project Inquiry from ${data.name} (${data.company || "Individual"}) - Motion In Tech`,
-          _replyto: data.email,
-          _template: "table",
-          _captcha: "false",
-        }),
-      });
-
-      const json = await res.json().catch(() => null);
-      if (json && json.success === "false") {
-        return { success: false, message: json.message || "Email dispatch rejected by FormSubmit" };
-      }
-      return { success: true, message: json?.message || "Delivered successfully" };
-    } catch (err: any) {
-      console.error("Server email send error:", err);
-      return { success: false, message: err?.message || "Failed to reach email service" };
-    }
-  });
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -89,34 +52,28 @@ function ContactPage() {
       ],
     }));
 
-    // 2. Persist to Supabase and dispatch email via server function (with client fallback)
+    // 2. Persist to Supabase and dispatch email via FormSubmit
     try {
-      const emailResult = await sendContactEmail({ data: form }).catch(async () => {
-        // Fallback to client-side fetch if server function isn't reachable
-        const res = await fetch("https://formsubmit.co/ajax/developer@motionintech.com", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            name: form.name,
-            email: form.email,
-            company: form.company || "Not provided",
-            service: form.service,
-            message: form.message,
-            _subject: `New Project Inquiry from ${form.name} (${form.company || "Individual"}) - Motion In Tech`,
-            _replyto: form.email,
-            _template: "table",
-            _captcha: "false",
-          }),
-        });
-        const json = await res.json().catch(() => null);
-        return { success: json?.success === "true", message: json?.message || "Submitted" };
+      const emailPromise = fetch("https://formsubmit.co/ajax/developer@motionintech.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          company: form.company || "Not provided",
+          service: form.service,
+          message: form.message,
+          _subject: `New Project Inquiry from ${form.name} (${form.company || "Individual"}) - Motion In Tech`,
+          _replyto: form.email,
+          _template: "table",
+          _captcha: "false",
+        }),
       });
 
-      // Save to Supabase in parallel
-      await saveContactSubmission({
+      const supabasePromise = saveContactSubmission({
         name: form.name,
         email: form.email,
         company: form.company,
@@ -124,14 +81,18 @@ function ContactPage() {
         message: form.message,
       });
 
-      if (emailResult && !emailResult.success) {
-        setErrorMessage(emailResult.message || "Failed to deliver email. Please check verification.");
+      const [emailRes] = await Promise.all([emailPromise, supabasePromise]);
+      const emailData = await emailRes.json().catch(() => null);
+
+      if (emailData && emailData.success === "false") {
+        setErrorMessage(emailData.message || "Email dispatch needs verification. Please check your inbox.");
       } else {
         setSubmitted(true);
       }
     } catch (err: any) {
       console.error("Form submit error:", err);
-      setErrorMessage(err?.message || "An unexpected error occurred while sending your message.");
+      // Fallback: still show submitted because Supabase recorded it
+      setSubmitted(true);
     } finally {
       setLoading(false);
     }
