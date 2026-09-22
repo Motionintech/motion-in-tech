@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as WebmailRouteImport } from './routes/webmail'
 import { Route as WorkRouteImport } from './routes/work'
 import { Route as ServicesServiceIdRouteImport } from './routes/services_.$serviceId'
 import { Route as WorkProjectIdRouteImport } from './routes/work_.$projectId'
@@ -43,6 +44,11 @@ const ServicesRoute = ServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WebmailRoute = WebmailRouteImport.update({
+  id: '/webmail',
+  path: '/webmail',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkRoute = WorkRouteImport.update({
   id: '/work',
   path: '/work',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/webmail': typeof WebmailRoute
   '/work': typeof WorkRoute
   '/services/$serviceId': typeof ServicesServiceIdRoute
   '/work/$projectId': typeof WorkProjectIdRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/webmail': typeof WebmailRoute
   '/work': typeof WorkRoute
   '/services/$serviceId': typeof ServicesServiceIdRoute
   '/work/$projectId': typeof WorkProjectIdRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/contact': typeof ContactRoute
   '/services': typeof ServicesRoute
+  '/webmail': typeof WebmailRoute
   '/work': typeof WorkRoute
   '/services_/$serviceId': typeof ServicesServiceIdRoute
   '/work_/$projectId': typeof WorkProjectIdRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/contact'
     | '/services'
+    | '/webmail'
     | '/work'
     | '/services/$serviceId'
     | '/work/$projectId'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/contact'
     | '/services'
+    | '/webmail'
     | '/work'
     | '/services/$serviceId'
     | '/work/$projectId'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/contact'
     | '/services'
+    | '/webmail'
     | '/work'
     | '/services_/$serviceId'
     | '/work_/$projectId'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   ContactRoute: typeof ContactRoute
   ServicesRoute: typeof ServicesRoute
+  WebmailRoute: typeof WebmailRoute
   WorkRoute: typeof WorkRoute
   ServicesServiceIdRoute: typeof ServicesServiceIdRoute
   WorkProjectIdRoute: typeof WorkProjectIdRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/webmail': {
+      id: '/webmail'
+      path: '/webmail'
+      fullPath: '/webmail'
+      preLoaderRoute: typeof WebmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/work': {
       id: '/work'
       path: '/work'
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   ContactRoute: ContactRoute,
   ServicesRoute: ServicesRoute,
+  WebmailRoute: WebmailRoute,
   WorkRoute: WorkRoute,
   ServicesServiceIdRoute: ServicesServiceIdRoute,
   WorkProjectIdRoute: WorkProjectIdRoute,
