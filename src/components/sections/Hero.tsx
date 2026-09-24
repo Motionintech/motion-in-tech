@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useCMS } from "@/context/CMSContext";
+import { LocationWithFlag } from "@/components/common/LocationWithFlag";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -268,7 +269,9 @@ export function Hero() {
 
         <div className="mt-10 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground md:mt-16">
           <span data-anim="meta">Scroll</span>
-          <span data-anim="meta" className="hidden md:inline">Berlin · Lisbon · NYC</span>
+          <span data-anim="meta" className="hidden md:inline">
+            <LocationWithFlag text={data.about.headquarters || "🇺🇸 Chicago, IL, USA"} flagClassName="h-3 w-4.5 -translate-y-[0.5px]" />
+          </span>
           <span data-anim="meta">{new Date().getFullYear()} ©</span>
         </div>
       </div>

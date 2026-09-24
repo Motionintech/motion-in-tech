@@ -1,6 +1,7 @@
 import { useCMS } from "@/context/CMSContext";
 import { Github, Instagram, Linkedin, Twitter } from "lucide-react";
 import { BrandLogo } from "@/components/layout/BrandLogo";
+import { LocationWithFlag } from "@/components/common/LocationWithFlag";
 
 export function Footer() {
   const { data } = useCMS();
@@ -49,7 +50,7 @@ export function Footer() {
 
           <div className="md:col-span-3">
             <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Studios</div>
-            <p className="text-sm text-foreground/80">{data.contact.address}</p>
+            <div className="text-sm text-foreground/80"><LocationWithFlag text={data.contact.address} flagClassName="h-3.5 w-5" /></div>
             <p className="mt-2 text-sm text-foreground/60">{data.contact.phone}</p>
             <div className="mt-6 flex justify-center gap-3 sm:justify-start">
               {s.linkedin && <a href={s.linkedin} data-cursor="hover" aria-label="LinkedIn" className="flex h-10 w-10 items-center justify-center border border-border transition-colors hover:border-neon hover:text-neon"><Linkedin size={16}/></a>}
@@ -62,7 +63,7 @@ export function Footer() {
 
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-center font-mono text-[11px] tracking-widest text-muted-foreground md:mt-20 md:flex-row md:items-center md:text-left">
           <span>{data.global.footerCopy}</span>
-          <span>{data.about.headquarters}</span>
+          <span><LocationWithFlag text={data.about.headquarters} flagClassName="h-3 w-4.5" /></span>
         </div>
 
         {/* Big bold statement filling the blank space */}

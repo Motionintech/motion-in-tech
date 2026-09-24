@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useCMS } from "@/context/CMSContext";
+import { LocationWithFlag } from "@/components/common/LocationWithFlag";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -116,7 +117,9 @@ export function AboutStrip() {
           </div>
           <div>
             <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Studios</div>
-            <div className="mt-2 font-display text-xl leading-tight">{data.about.headquarters}</div>
+            <div className="mt-2 font-display text-xl leading-tight">
+              <LocationWithFlag text={data.about.headquarters} flagClassName="h-3.5 w-5" />
+            </div>
           </div>
           <div className="col-span-2">
             <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Mission</div>

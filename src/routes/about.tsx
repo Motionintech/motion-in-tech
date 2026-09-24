@@ -3,6 +3,7 @@ import { useCMS } from "@/context/CMSContext";
 import { PageHero } from "@/components/layout/PageHero";
 import { Stats } from "@/components/sections/Stats";
 import { CTABanner } from "@/components/sections/CTABanner";
+import { LocationWithFlag } from "@/components/common/LocationWithFlag";
 import teamAris from "@/assets/team-aris.jpg";
 import teamLina from "@/assets/team-lina.jpg";
 import teamMarcus from "@/assets/team-marcus.jpg";
@@ -43,7 +44,9 @@ function AboutPage() {
             </div>
             <div className="border-t border-border pt-6">
               <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Headquarters</div>
-              <div className="mt-2 font-display text-xl">{data.about.headquarters}</div>
+              <div className="mt-2 font-display text-xl">
+                <LocationWithFlag text={data.about.headquarters} flagClassName="h-4 w-6" />
+              </div>
             </div>
             <div className="border-t border-border pt-6">
               <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Disciplines</div>

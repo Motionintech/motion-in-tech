@@ -234,15 +234,15 @@ const defaultData: CMSData = {
   ],
   about: {
     tagline: "A studio engineered like a product.",
-    story: "Founded in 2017 in Berlin, Motion In Tech began as a small collective of designers and engineers obsessed with how digital products feel. Today we are a 40-person studio building software for ambitious teams across fintech, mobility and consumer.",
+    story: "Founded in 2017 in Chicago, USA, Motion In Tech began as a small collective of designers and engineers obsessed with how digital products feel. Today we are a 40-person studio building software for ambitious teams across fintech, mobility and consumer.",
     founded: "2017",
-    headquarters: "Berlin · Lisbon · New York",
+    headquarters: "🇺🇸 Chicago, IL, USA",
     mission: "Make the most important digital products on earth feel inevitable.",
   },
   contact: {
     email: "developer@motionintech.com",
-    phone: "+49 30 1234 5678",
-    address: "Torstraße 110, 10119 Berlin, Germany",
+    phone: "+1 (312) 555-0198",
+    address: "🇺🇸 Chicago, IL, USA",
     socials: {
       linkedin: "https://linkedin.com",
       twitter: "https://twitter.com",
@@ -330,10 +330,27 @@ export function CMSProvider({ children }: { children: ReactNode }) {
         const contactEmail = (!contactParsed.email || contactParsed.email === "hello@motionintech.com")
           ? "developer@motionintech.com"
           : contactParsed.email;
+        if (contactParsed.address && contactParsed.address.includes("Berlin")) {
+          contactParsed.address = "🇺🇸 Chicago, IL, USA";
+        }
+        if (contactParsed.phone && contactParsed.phone.includes("+49")) {
+          contactParsed.phone = "+1 (312) 555-0198";
+        }
+        const aboutParsed = parsed.about ?? {};
+        if (aboutParsed.headquarters && aboutParsed.headquarters.includes("Berlin")) {
+          aboutParsed.headquarters = "🇺🇸 Chicago, IL, USA";
+        }
+        if (aboutParsed.story && aboutParsed.story.includes("in Berlin")) {
+          aboutParsed.story = aboutParsed.story.replace(/in Berlin/g, "in Chicago, USA");
+        }
         const globalParsed = parsed.global ?? {};
         setDataState({
           ...defaultData,
           ...parsed,
+          about: {
+            ...defaultData.about,
+            ...aboutParsed,
+          },
           contact: {
             ...defaultData.contact,
             ...contactParsed,
@@ -366,6 +383,18 @@ export function CMSProvider({ children }: { children: ReactNode }) {
 
           if (remoteCms.status === "fulfilled" && remoteCms.value) {
             const r = remoteCms.value as Partial<CMSData>;
+            if (r.about?.story && r.about.story.includes("in Berlin")) {
+              r.about.story = r.about.story.replace(/in Berlin/g, "in Chicago, USA");
+            }
+            if (r.about?.headquarters && r.about.headquarters.includes("Berlin")) {
+              r.about.headquarters = "🇺🇸 Chicago, IL, USA";
+            }
+            if (r.contact?.address && r.contact.address.includes("Berlin")) {
+              r.contact.address = "🇺🇸 Chicago, IL, USA";
+            }
+            if (r.contact?.phone && r.contact.phone.includes("+49")) {
+              r.contact.phone = "+1 (312) 555-0198";
+            }
             updated = {
               ...updated,
               ...r,

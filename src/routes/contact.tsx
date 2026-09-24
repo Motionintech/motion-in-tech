@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useCMS, cmsUid } from "@/context/CMSContext";
 import { PageHero } from "@/components/layout/PageHero";
 import { saveContactSubmission } from "@/lib/supabase";
+import { LocationWithFlag } from "@/components/common/LocationWithFlag";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -134,7 +135,9 @@ function ContactPage() {
               </div>
               <div className="border-t border-border pt-6">
                 <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Studio</div>
-                <div className="mx-auto mt-2 max-w-xs font-display text-xl md:mx-0">{data.contact.address}</div>
+                <div className="mx-auto mt-2 max-w-xs font-display text-xl md:mx-0">
+                  <LocationWithFlag text={data.contact.address} flagClassName="h-4 w-6" />
+                </div>
               </div>
               <div className="border-t border-border pt-6">
                 <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Elsewhere</div>
